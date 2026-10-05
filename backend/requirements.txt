@@ -11,7 +11,8 @@ psycopg[binary]==3.2.3    # Postgres driver. Pip reads [binary] as the 'binary' 
                                         # If your installer balks at the brackets, switch to:
                                         # psycopg-binary==3.2.3    (standalone binary wheel)
                                         # or just keep this — it works on Render's build image.
-rapidfuzz==3.10.1
+rapidfuzz==3.14.6   # 3.10.x has Python 3.14 build failures (broken pyproject metadata).
+                  # 3.14.6 ships cp314 wheels so pip uses them, no source build.
 twilio==9.4.1
 # passlib 1.7.4 is unmaintained and breaks with bcrypt >= 4.1.
 # Use a pinned bcrypt that passlib is happy with.

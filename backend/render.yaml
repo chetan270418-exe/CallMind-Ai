@@ -13,8 +13,6 @@ services:
   - type: web
     name: callmind-backend
     runtime: python
-    pythonVersion: "3.11.9"   # MUST pin explicitly — Blueprint ignores runtime.txt.
-                              # 3.14 breaks rapidfuzz 3.10.x's pyproject metadata.
     plan: free
     region: oregon
     branch: main
