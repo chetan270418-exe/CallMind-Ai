@@ -7,10 +7,8 @@ pydantic==2.13.5
 pydantic-settings==2.7.0
 email-validator==2.2.0
 sqlalchemy==2.1.3   # 2.0.x lacks cp314 wheels; build-from-source fails on Render (read-only fs).
-psycopg[binary]==3.2.3    # Postgres driver. Pip reads [binary] as the 'binary' extra.
-                                        # If your installer balks at the brackets, switch to:
-                                        # psycopg-binary==3.2.3    (standalone binary wheel)
-                                        # or just keep this — it works on Render's build image.
+psycopg[binary]==3.3.6    # 3.2.x has no cp314 wheels - Render fails to build from source.
+                                        # 3.3+ ships cp314 binary wheels.
 rapidfuzz==3.14.6   # 3.10.x has Python 3.14 build failures (broken pyproject metadata).
                   # 3.14.6 ships cp314 wheels so pip uses them, no source build.
 twilio==9.4.1
