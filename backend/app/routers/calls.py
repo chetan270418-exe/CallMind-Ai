@@ -15,17 +15,16 @@ router = APIRouter(prefix="/calls", tags=["calls"])
 
 
 def _call_to_out(call: models.Call, db: Session) -> schemas.CallOut:
+    # Resolve related rows explicitly. We avoid ORM `relationship` attributes
+    # so we never touch a detached or unloaded related object.
     contact = (
-        db.query(models.Contact).filter(models.Contact.id == call.contact_id).one_or_none()
-        if call.contact_id else None
+        db.get(models.Contact, call.contact_id) if call.contact_id else None
     )
     group = (
-        db.query(models.Group).filter(models.Group.id == call.group_id).one_or_none()
-        if call.group_id else None
+        db.get(models.Group, call.group_id) if call.group_id else None
     )
     qa = (
-        db.query(models.QAEntry).filter(models.QAEntry.id == call.matched_qa_id).one_or_none()
-        if call.matched_qa_id else None
+        db.get(models.QAEntry, call.matched_qa_id) if call.matched_qa_id else None
     )
     return schemas.CallOut(
         id=call.id,

@@ -56,3 +56,7 @@ databases:
     region: oregon
     databaseName: callmind
     user: callmind
+    # NOTE: Render's free Postgres tier deletes the database after 90 days of
+    # inactivity on the free web-service plan. If you stay on free web plan,
+    # back up the DATABASE_URL or upgrade this database to "starter" ($7/mo)
+    # once the app is in real production.

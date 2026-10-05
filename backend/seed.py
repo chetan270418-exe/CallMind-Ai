@@ -3,13 +3,15 @@ sample Q&A entries, and a default AppSettings row.
 
 Run locally with:
     python seed.py
+    python seed.py --email other@example.com
 
 Env vars from .env are picked up automatically (pydantic-settings).
 
-Override the owner email via OWNER_EMAIL env var (defaults to chetan@example.com).
+Owner email priority: --email CLI flag > OWNER_EMAIL env var > settings default.
 """
 from __future__ import annotations
 
+import argparse
 import os
 from getpass import getpass
 
@@ -26,7 +28,18 @@ from app.models import (
 from app.routers.auth import _hash_password
 
 
-OWNER_EMAIL = os.environ.get("OWNER_EMAIL", "chetan@example.com")
+def _resolve_owner_email(cli_arg: str | None) -> str:
+    """Resolve the owner email at seed time (CLI > env > settings default).
+
+    Reading it lazily inside this function — not at module import — means
+    later env changes (e.g. sourced after import) are still respected.
+    """
+    if cli_arg:
+        return cli_arg
+    env_value = os.environ.get("OWNER_EMAIL")
+    if env_value:
+        return env_value
+    return get_settings().default_owner_email
 
 
 def _ensure_group(db, name, greeting, fallback, language="en-US"):
@@ -75,16 +88,20 @@ def _ensure_qa(db, *, title, examples, answer, scope_type, scope_id=None, langua
     return qa
 
 
-def seed():
+def seed(owner_email: str | None = None):
     s = get_settings()
     init_db()
 
+    # Resolve once at the start of seeding, BEFORE we look for an existing
+    # owner or create one. This is the value we commit to.
+    owner_email = _resolve_owner_email(owner_email)
+
     with SessionLocal() as db:
-        # 1) Owner — create only if not present. Configurable via OWNER_EMAIL.
-        owner = db.query(Owner).filter(Owner.email == OWNER_EMAIL).one_or_none()
+        # 1) Owner — create only if not present.
+        owner = db.query(Owner).filter(Owner.email == owner_email).one_or_none()
         if owner is None:
-            print(f"Creating owner account for {OWNER_EMAIL}...")
-            pw = getpass(f"Set a password for {OWNER_EMAIL}: ")
+            print(f"Creating owner account for {owner_email}...")
+            pw = getpass(f"Set a password for {owner_email}: ")
             pw2 = getpass("Confirm password: ")
             if pw != pw2:
                 print("Passwords do not match. Aborting.")
@@ -94,7 +111,7 @@ def seed():
                 return
             owner = Owner(
                 name=s.default_owner_name,
-                email=OWNER_EMAIL,
+                email=owner_email,
                 password_hash=_hash_password(pw),
                 assistant_name=s.default_assistant_name,
             )
@@ -147,7 +164,7 @@ def seed():
             relationship_label="Father",
             language="en-US",
         )
-        rahul = _ensure_contact(
+        _ensure_contact(
             db,
             name="Rahul",
             phone="+919999900003",
@@ -200,5 +217,15 @@ def seed():
     print("\nSeed complete. Start the backend with:\n  uvicorn app.main:app --reload")
 
 
+def main():
+    parser = argparse.ArgumentParser(description="Seed CallMind AI database.")
+    parser.add_argument(
+        "--email",
+        help="Owner email (overrides OWNER_EMAIL env var and settings default).",
+    )
+    args = parser.parse_args()
+    seed(owner_email=args.email)
+
+
 if __name__ == "__main__":
-    seed()
+    main()

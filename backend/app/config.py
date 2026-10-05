@@ -59,21 +59,39 @@ class Settings(BaseSettings):
     default_fallback: str = "Chetan will call you back."
     ai_disclosure_text: str = "This is an AI assistant for Chetan"
 
+    # Seed-time owner email. The seed script uses this (or the OWNER_EMAIL env
+    # var) so the first owner can be created from anywhere — including the
+    # Render dashboard after first deploy.
+    default_owner_email: str = "chetan@example.com"
+
 
 @lru_cache
 def get_settings() -> Settings:
     s = Settings()
 
-    # Production-time safety net: refuse to boot with a missing/weak JWT secret.
+    # Production-time safety net: refuse to boot with a missing/weak JWT secret,
+    # AND refuse to boot with a missing Twilio token (otherwise the webhooks
+    # would silently accept unsigned calls in production).
     if s.environment.lower() == "production":
+        missing: list[str] = []
         if not s.jwt_secret or len(s.jwt_secret) < 32:
+            missing.append(
+                "JWT_SECRET (must be >= 32 chars; generate with "
+                "`python -c 'import secrets; print(secrets.token_urlsafe(48))'`)"
+            )
+        if not s.twilio_account_sid:
+            missing.append("TWILIO_ACCOUNT_SID")
+        if not s.twilio_auth_token:
+            missing.append("TWILIO_AUTH_TOKEN")
+        if not s.twilio_from_number:
+            missing.append("TWILIO_FROM_NUMBER (e.g. +15551234567)")
+        if missing:
             raise ConfigError(
-                "JWT_SECRET must be set to a value of at least 32 characters "
-                "in production. Generate one with: "
-                "python -c 'import secrets; print(secrets.token_urlsafe(48))'"
+                "Refusing to start in production with missing/invalid config:\n  - "
+                + "\n  - ".join(missing)
             )
 
-    # Dev-time convenience: generate an ephemeral secret if none was provided.
+    # Dev-time convenience: generate an ephemeral JWT secret if none was provided.
     if not s.jwt_secret:
         s.jwt_secret = secrets.token_urlsafe(48)
     return s

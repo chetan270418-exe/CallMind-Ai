@@ -12,9 +12,20 @@ from .auth import current_owner
 router = APIRouter(prefix="/contacts", tags=["contacts"])
 
 
-def _hydrate(contact: models.Contact) -> schemas.ContactOut:
+def _hydrate(db: Session, contact: models.Contact) -> schemas.ContactOut:
+    """Build the API response, resolving the group via a fresh query.
+
+    Doing a fresh query (rather than touching the detached `contact.group`
+    attribute) avoids stale-data surprises if the session was already closed,
+    and keeps the model free of an ORM `relationship` (which was the source
+    of a name-shadowing bug earlier).
+    """
     co = schemas.ContactOut.model_validate(contact)
-    co.group_name = contact.group.name if contact.group else None
+    if contact.group_id is None:
+        co.group_name = None
+    else:
+        group = db.get(models.Group, contact.group_id)
+        co.group_name = group.name if group else None
     return co
 
 
@@ -35,7 +46,7 @@ def list_contacts(
     _: models.Owner = Depends(current_owner),
 ):
     rows = db.query(models.Contact).order_by(models.Contact.name).all()
-    return [_hydrate(r) for r in rows]
+    return [_hydrate(db, r) for r in rows]
 
 
 @router.post("", response_model=schemas.ContactOut, status_code=201)
@@ -45,7 +56,7 @@ def create_contact(
     _: models.Owner = Depends(current_owner),
 ):
     _validate_group_id(db, body.group_id)
-    contact = models.Contact(**body.model_dump())
+    contact = models.Contact(**body.model_dump(by_alias=True))
     db.add(contact)
     try:
         db.commit()
@@ -56,7 +67,7 @@ def create_contact(
             detail="A contact with this phone number already exists.",
         ) from exc
     db.refresh(contact)
-    return _hydrate(contact)
+    return _hydrate(db, contact)
 
 
 @router.get("/{contact_id}", response_model=schemas.ContactOut)
@@ -68,7 +79,7 @@ def get_contact(
     contact = db.get(models.Contact, contact_id)
     if contact is None:
         raise HTTPException(404, "Contact not found")
-    return _hydrate(contact)
+    return _hydrate(db, contact)
 
 
 @router.put("/{contact_id}", response_model=schemas.ContactOut)
@@ -82,7 +93,7 @@ def update_contact(
     if contact is None:
         raise HTTPException(404, "Contact not found")
     _validate_group_id(db, body.group_id)
-    for k, v in body.model_dump().items():
+    for k, v in body.model_dump(by_alias=True).items():
         setattr(contact, k, v)
     try:
         db.commit()
@@ -93,7 +104,7 @@ def update_contact(
             detail="A contact with this phone number already exists.",
         ) from exc
     db.refresh(contact)
-    return _hydrate(contact)
+    return _hydrate(db, contact)
 
 
 @router.delete("/{contact_id}", status_code=204)

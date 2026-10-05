@@ -19,12 +19,21 @@ def _normalize_postgres_url(url: str) -> str:
 
     Render and Heroku both hand us 'postgres://' URLs. We rewrite them to the
     psycopg driver, which is the one we ship in requirements.txt.
+
+    NOTE: urlunsplit always re-adds the '://' separator, so the scheme we pass
+    in must NOT include it. Passing 'postgresql+psycopg://' produces an invalid
+    URL like 'postgresql+psycopg://://user:...'. Use the bare scheme.
     """
     if not url or not url.startswith(("postgres://", "postgresql://")):
         return url
     parts = urlsplit(url)
-    scheme = "postgresql+psycopg://"
-    return urlunsplit((scheme, parts.netloc, parts.path, parts.query, parts.fragment))
+    return urlunsplit((
+        "postgresql+psycopg",
+        parts.netloc,
+        parts.path,
+        parts.query,
+        parts.fragment,
+    ))
 
 
 def _build_engine():

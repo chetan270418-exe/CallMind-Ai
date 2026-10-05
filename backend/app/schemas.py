@@ -10,14 +10,23 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 from .models import CallOutcome, ScopeType
 
 
-E164_REGEX = re.compile(r"^\+[1-9]\d{6,14}$")  # + then 7..15 digits, no leading zero
+E164_REGEX = re.compile(r"^\+[1-9][0-9]{6,14}$")  # + then 7..15 ASCII digits, no leading zero
 
 
 def validate_e164(value: str) -> str:
-    """Return the value if it matches E.164, else raise ValueError."""
+    """Return the value if it matches ASCII-only E.164, else raise ValueError.
+
+    Phone numbers must be plain ASCII digits so they can be safely stored and
+    compared across SQLite / Postgres / CSV exports. Rejects Unicode digits,
+    whitespace, dashes, parentheses — anything that isn't +0-9.
+    """
+    if not value or not value.isascii():
+        raise ValueError(
+            f"phone number must contain only ASCII characters; got {value!r}"
+        )
     if not E164_REGEX.match(value):
         raise ValueError(
-            f"phone number must be in E.164 format: '+' followed by 7-15 digits "
+            f"phone number must be in E.164 format: '+' followed by 7-15 ASCII digits "
             f"(e.g. +919876543210); got {value!r}"
         )
     return value
@@ -57,10 +66,20 @@ class GroupOut(GroupBase):
 # ---------- Contact ----------
 
 class ContactBase(BaseModel):
+    model_config = {"populate_by_name": True}
+
     name: str = Field(..., min_length=1, max_length=120)
     phone_e164: str = Field(..., description="E.164 format, e.g. +919876543210")
     group_id: Optional[int] = None
-    relationship: str = Field(default="", max_length=60)
+    # DB column is `relationship_label` (renamed to avoid shadowing SQLAlchemy's
+    # `relationship` symbol). The public API field stays `relationship` via
+    # validation_alias so the Android client sees a stable name.
+    relationship: str = Field(
+        default="",
+        max_length=60,
+        validation_alias="relationship_label",
+        serialization_alias="relationship",
+    )
     language: str = "en"
     custom_greeting: str = ""
     custom_fallback: str = ""
