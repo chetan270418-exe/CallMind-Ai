@@ -1,1 +1,4 @@
-python-3.11.9
+# runtime.txt removed on 2026-10-05: Render Blueprint services ignore
+# this file. Python version is now pinned in backend/render.yaml via
+# pythonVersion: "3.11.9". Kept here only as a no-op placeholder so that
+# anyone re-creating this file as a habit doesn't accidentally delete it.
