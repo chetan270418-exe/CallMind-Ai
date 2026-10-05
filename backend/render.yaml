@@ -2,17 +2,18 @@
 # Deploys the CallMind AI backend as a web service + a managed Postgres database.
 # To deploy: render.com -> New -> Blueprint -> point at this repo.
 #
-# IMPORTANT: Render's free plan spins down after 15 minutes of inactivity and
-# takes ~30s to wake up on the next request. Twilio webhooks will time out
-# before the service wakes, causing the caller to hear dead air and the call
-# to be dropped. Use the "starter" plan ($7/mo) for the web service in
-# production. The free Postgres database is fine.
+# IMPORTANT: Render's free plan spins down after 15 minutes of inactivity
+# and takes ~30s to wake up on the next request. To avoid Twilio webhook
+# timeouts, set up a free external ping (UptimeRobot, cron-job.org, etc.) to
+# hit https://callmind-backend.onrender.com/health every 14 minutes so the
+# service stays warm. Twilio signature validation is auto-disabled when the
+# auth token isn't set, so the /health ping works without any credentials.
 
 services:
   - type: web
     name: callmind-backend
     runtime: python
-    plan: starter          # <-- $7/mo. Free plan is unsuitable for Twilio webhooks.
+    plan: free
     region: oregon
     branch: main
     rootDir: backend
