@@ -1,0 +1,18 @@
+# CallMind AI backend - production requirements
+# Pin versions that work together on Render (Python 3.11).
+
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.7.0
+email-validator==2.2.0
+sqlalchemy==2.0.36
+psycopg[binary]==3.2.3    # Postgres driver (used after URL normalisation in app/db.py)
+rapidfuzz==3.11.1
+twilio==9.4.1
+# passlib 1.7.4 is unmaintained and breaks with bcrypt >= 4.1.
+# Use a pinned bcrypt that passlib is happy with.
+bcrypt==4.0.1
+passlib==1.7.4
+python-jose[cryptography]==3.3.0
+python-multipart==0.0.20

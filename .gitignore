@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+ENV/
+.eggs/
+*.egg-info/
+.pytest_cache/
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build / dist
+build/
+dist/
+*.log
+
+# Twilio / secrets - explicit
+*.pem
+*.key
+secrets/
+
+# Android (later)
+android/.gradle/
+android/local.properties
+android/build/
+android/app/build/
+android/.idea/
+
+# Render
+.render/
+
+# Local dev artifacts
+app.py
+callmind.db
+*.sqlite
+*.sqlite3
+__pycache__/
+*.pyc
+_test_*.py
+_test_matcher.py

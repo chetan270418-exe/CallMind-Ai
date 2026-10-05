@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CallMind AI — App Icon (source vector)
+  Render at 1024x1024 for the store listing and export PNGs at
+  192 / 432 / 512 / 1024 for Android (mdpi, xxxhdpi, Play Store).
+
+  Design rationale:
+    - Indigo gradient background matches the Material 3 accent in the Figma.
+    - White phone handset = "calls".
+    - Three small sparkles = the AI layer.
+    - All shapes are geometric so the icon stays legible at 48 px.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"  stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="phone" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"  stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E0E7FF"/>
+    </linearGradient>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+
+  <!-- Background: rounded square (Android adaptive-icon safe area is the inner 66%) -->
+  <rect x="0" y="0" width="1024" height="1024" rx="220" ry="220" fill="url(#bg)"/>
+
+  <!-- Soft glow behind phone -->
+  <circle cx="512" cy="540" r="280" fill="#FFFFFF" opacity="0.08" filter="url(#soft)"/>
+
+  <!-- Phone handset (classic curved shape, slightly tilted) -->
+  <g transform="translate(512 540) rotate(-20) translate(-512 -540)">
+    <path d="
+      M 320 280
+      C 320 220, 380 180, 440 200
+      L 560 240
+      C 620 260, 660 320, 660 380
+      L 660 480
+      C 660 520, 640 540, 600 540
+      L 520 540
+      C 480 540, 460 520, 460 480
+      L 460 380
+      C 460 360, 440 340, 420 340
+      L 360 340
+      C 340 340, 320 320, 320 300
+      Z
+      M 700 540
+      C 700 480, 760 440, 820 460
+      L 940 500
+      C 1000 520, 1040 580, 1040 640
+      L 1040 740
+      C 1040 780, 1020 800, 980 800
+      L 900 800
+      C 860 800, 840 780, 840 740
+      L 840 640
+      C 840 620, 820 600, 800 600
+      L 740 600
+      C 720 600, 700 580, 700 560
+      Z" fill="url(#phone)" opacity="0.95"/>
+
+    <!-- Inner cutout (makes it a true handset silhouette) -->
+    <path d="
+      M 420 320
+      C 440 320, 460 340, 460 360
+      L 460 460
+      C 460 480, 480 500, 500 500
+      L 580 500
+      C 600 500, 620 480, 620 460
+      L 620 380
+      C 620 360, 600 340, 580 340
+      Z" fill="url(#bg)"/>
+  </g>
+
+  <!-- Three AI sparkles -->
+  <g fill="#FFFFFF">
+    <!-- top right sparkle -->
+    <path d="M 760 240
+             L 776 290
+             L 826 306
+             L 776 322
+             L 760 372
+             L 744 322
+             L 694 306
+             L 744 290 Z"/>
+    <!-- small sparkle -->
+    <path d="M 870 380
+             L 880 410
+             L 910 420
+             L 880 430
+             L 870 460
+             L 860 430
+             L 830 420
+             L 860 410 Z" opacity="0.85"/>
+    <!-- bottom right small sparkle -->
+    <path d="M 240 760
+             L 248 786
+             L 274 794
+             L 248 802
+             L 240 828
+             L 232 802
+             L 206 794
+             L 232 786 Z" opacity="0.7"/>
+  </g>
+</svg>

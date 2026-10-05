@@ -1,0 +1,57 @@
+# Render Blueprint (render.yaml)
+# Deploys the CallMind AI backend as a web service + a managed Postgres database.
+# To deploy: render.com -> New -> Blueprint -> point at this repo.
+#
+# IMPORTANT: Render's free plan spins down after 15 minutes of inactivity and
+# takes ~30s to wake up on the next request. Twilio webhooks will time out
+# before the service wakes, causing the caller to hear dead air and the call
+# to be dropped. Use the "starter" plan ($7/mo) for the web service in
+# production. The free Postgres database is fine.
+
+services:
+  - type: web
+    name: callmind-backend
+    runtime: python
+    plan: starter          # <-- $7/mo. Free plan is unsuitable for Twilio webhooks.
+    region: oregon
+    branch: main
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        fromDatabase:
+            name: callmind-db
+            property: connectionString
+      - key: TWILIO_ACCOUNT_SID
+        sync: false          # set manually in Render dashboard
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM_NUMBER
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true  # Render will auto-generate a random secret
+      - key: MATCH_THRESHOLD
+        value: "0.60"
+      - key: DEFAULT_OWNER_NAME
+        value: Chetan
+      - key: DEFAULT_ASSISTANT_NAME
+        value: CallMind
+      - key: DEFAULT_GREETING
+        value: "Hi, this is Chetan's AI assistant. He's busy right now. What would you like to ask?"
+      - key: DEFAULT_FALLBACK
+        value: "Chetan will call you back."
+      - key: AI_DISCLOSURE_TEXT
+        value: "This is an AI assistant for Chetan"
+
+databases:
+  - name: callmind-db
+    plan: free
+    region: oregon
+    databaseName: callmind
+    user: callmind
